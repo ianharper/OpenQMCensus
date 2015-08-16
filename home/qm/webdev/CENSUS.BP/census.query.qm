@@ -1,0 +1,60 @@
+* census queries come in three parts:
+*	level 		- the level of geographic detail
+* 	locations 	- specific locations within the level
+* 	topic		- the topics (tables) being queried
+*
+* First the level and locations will be found in the census.header. Then the appropriate
+* logrecno ids will be gathered from the census tables. The data could be reported as a 
+* sum across all the cells of the table queried or as their individual values.
+*
+* This program will take data as command line arguments and feed them into a subroutine.
+* The arguments do not need to be in order. The accepted arguments are:
+*
+*	Argument 									Example						
+*	level=[level name]							level=county 				
+*	locations=[locations ',' deliminated]		locations=whatcom,skagit	
+*	topic=[table name]							topic=pct1 (overall population table)
+* 
+* 	run bp census.query.qm level=County locations="Whatcom&County" topic=pct1
+
+	tclread arguments
+	if index(arguments, '&',1) then
+		words 	  = dcount(arguments,'&') ;* HTTP arguments are & delimited
+		arguments = swap(arguments, '&',   ' ')
+		arguments = swap(arguments, '%22', \"\)
+	end 
+
+	words 	  = dcount(arguments,' ') ;* TCL arguments are ' ' delimited
+	arguments = swap(arguments, ' ', @AM)	
+	arguments = swap(arguments, '_',   ' ')
+
+	if dcount(arguments, @AM) ne 4 then display arguments; stop ;* impropper request
+
+	args  = 'level='			:@VM:	'locations='		:@VM:	'topic='		:@AM
+	args :=  len(args<1,1>) 	:@VM: 	 len(args<1,2>) 	:@VM:	 len(args<1,3>)
+
+	for w = 1 to words
+		begin case
+			case arguments<w>[1,args<2,1>] eq args<1,1> ;* level
+				level 		= field(arguments<w>,'=',2)
+
+			case arguments<w>[1,args<2,2>] eq args<1,2> ;* locations
+				locations 	= field(arguments<w>,'=',2)
+				locations	= swap(locations, '_', ' ')
+				locations 	= swap(locations, ',', \" "\) ;* prepped for header select statment
+
+			case arguments<w>[1,args<2,3>] eq args<1,3> ;* topic
+				topic 		= field(arguments<w>,'=',2)
+
+		end case
+	next w
+
+	header.statement = \select census.header with \:level:\ and with name = \:locations:\ saving \:topic
+
+	list.statement   = \LISTA \:topic
+
+	execute header.statement capturing x
+	execute list.statement 
+
+end
+
