@@ -1,0 +1,35 @@
+* Creates entries in the census.header dictionary. Each entry coresponds to the various table 
+* files. For each table file there is an entry in the census.header dictionary that constructs
+* the id for the table that corresponds to the given item in the census.header. The ids for
+* the two files aren't 1:1 because the census.header does not have a chariter or CIFSN. In
+* addition the @ID for the table file is altered so it's format is 23L.
+
+tables = 'pct1':@VM:'1':@VM:'1':@AM:'pct2':@VM:'2':@VM:'6':@AM:'pct3':@VM:'3':@VM:'209':@AM:'pct4':@VM:'3':@VM:'3':@AM:'pct5':@VM:'4':@VM:'49':@AM:'pct6':@VM:'4':@VM:'3':@AM:'pct7':@VM:'4':@VM:'3':@AM:'pct8':@VM:'4':@VM:'9':@AM:'pct9':@VM:'4':@VM:'19':@AM:'pct10':@VM:'4':@VM:'34':@AM:'pct11':@VM:'4':@VM:'31':@AM:'pct12':@VM:'4':@VM:'21':@AM:'pct13':@VM:'4':@VM:'15':@AM:'pct14':@VM:'4':@VM:'11':@AM:'pct15':@VM:'4':@VM:'11':@AM:'pct16':@VM:'4':@VM:'11':@AM:'pct17':@VM:'4':@VM:'3':@AM:'pct18':@VM:'4':@VM:'3':@AM:'pct19':@VM:'5':@VM:'34':@AM:'pct20':@VM:'5':@VM:'16':@AM:'pct21':@VM:'5':@VM:'26':@AM:'pct22':@VM:'5':@VM:'28':@AM:'pct23':@VM:'5':@VM:'13':@AM:'pct24':@VM:'5':@VM:'16':@AM:'pct25':@VM:'5':@VM:'45':@AM:'pct26':@VM:'5':@VM:'7':@AM:'pct27':@VM:'5':@VM:'18':@AM:'pct28':@VM:'5':@VM:'23':@AM:'pct29':@VM:'5':@VM:'1':@AM:'pct30':@VM:'5':@VM:'3':@AM:'pct31':@VM:'5':@VM:'3':@AM:'pct32':@VM:'6':@VM:'20':@AM:'pct33':@VM:'6':@VM:'20':@AM:'pct34':@VM:'6':@VM:'20':@AM:'pct35':@VM:'6':@VM:'6':@AM:'pct36':@VM:'6':@VM:'15':@AM:'pct37':@VM:'6':@VM:'11':@AM:'pct38':@VM:'6':@VM:'32':@AM:'pct39':@VM:'7':@VM:'195':@AM:'pct40':@VM:'7':@VM:'3':@AM:'pct41':@VM:'7':@VM:'3':@AM:'pct42':@VM:'7':@VM:'3':@AM:'pct43':@VM:'7':@VM:'3':@AM:'pct44':@VM:'7':@VM:'3':@AM:'pct45':@VM:'7':@VM:'3':@AM:'pct46':@VM:'7':@VM:'3':@AM:'pct47':@VM:'7':@VM:'3':@AM:'pco1':@VM:'8':@VM:'39':@AM:'pco2':@VM:'8':@VM:'39':@AM:'pco3':@VM:'8':@VM:'33':@AM:'pco4':@VM:'8':@VM:'15':@AM:'pco5':@VM:'8':@VM:'31':@AM:'pco6':@VM:'8':@VM:'39':@AM:'pco7':@VM:'8':@VM:'39':@AM:'pco8':@VM:'9':@VM:'25':@AM:'pco9':@VM:'9':@VM:'25':@AM:'pco10':@VM:'9':@VM:'39':@AM:'hct1':@VM:'10':@VM:'6':@AM:'hct2':@VM:'11':@VM:'4':@AM:'hct3':@VM:'11':@VM:'1':@AM:'hct4':@VM:'11':@VM:'4':@AM:'hct5':@VM:'11':@VM:'3':@AM:'hct6':@VM:'11':@VM:'8':@AM:'hct7':@VM:'11':@VM:'17':@AM:'hct8':@VM:'11':@VM:'21':@AM:'hct9':@VM:'11':@VM:'69':@AM:'hct10':@VM:'11':@VM:'13':@AM:'hct11':@VM:'11':@VM:'13':@AM:'hct12':@VM:'11':@VM:'13':@AM:'hct13':@VM:'11':@VM:'3':@AM:'hct14':@VM:'11':@VM:'3'
+
+open 'census.tables' to census.tables else abort
+open 'DICT', 'CENSUS.HEADER' to census.header else abort
+
+dict = 'I'
+*dict<2> = 'fileid:'*':stusab:'*':chariter:'*':TRANS('census.tables','pct1',1,'X'):'*':logrecno'
+dict<3> = ''
+*dict<4> = 'Table ID'
+dict<5> = '23 L'
+dict<6> = 'S'
+
+
+
+
+
+table.count = dcount(tables,@AM)
+for t = 1 to table.count
+  rec = fmt(tables<t,2>,\2'0'R\):@AM:tables<t,3>
+  write rec on census.tables, tables<t,1>
+
+  dict<2> = \fileid:'*':stusab:'*':chariter:'*':TRANS('census.tables','\:tables<t,1>:\',1,'X'):'*':logrecno\
+  dict<4> = tables<t,1>:' Table ID'
+  *write dict on census.header, tables<t,1>
+
+  open 'DICT',tables<t,1> to table.dict else abort
+  id.dict = 'D':@AM:'0':@AM:@AM:@AM:'23L':@AM:'S'
+  write id.dict on table.dict, '@ID'
+next t
