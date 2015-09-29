@@ -1,0 +1,66 @@
+* Field-Import: Imports the field names from a text version of the Access header file from
+*				the census website.
+* 
+* fieldNames	1 - Table
+* 				2 - Table Name
+* 				3 - Universe
+*				4 - Cell Names
+
+	open 'census.wa' to census.file else abort
+	open 'table.names' to table.names else abort
+
+	read dataDictionary from census.file, 'DataDictionary.tsv' else abort
+
+	fieldNames = ''; lastTable = ''
+	rowCount = dcount(dataDictionary, @AM)
+
+	for r = 3 to rowCount
+		table = field(dataDictionary<r>, char(9), 2)
+		fieldName = field(dataDictionary<r>, char(9), 4)
+
+		if table eq '' then continue 
+
+		locate(table, fieldNames, 1; pos) else
+			fieldNames = insert(fieldNames, 1, pos; table)
+		end
+
+		begin case
+			case table ne lastTable ;* table breaks signal that the field name is the table title.
+				fieldNames<1,pos> = table
+				fieldNames<2,pos> = fieldName
+
+				if index(fieldName, '[', 1) eq 0 then
+					loop
+						r += 1
+						table = field(dataDictionary<r>, char(9), 2)
+						fieldName = field(dataDictionary<r>, char(9), 4)
+
+						fieldNames<2, pos> := fieldName
+						* all tables have a [x] which is the number of cells in the table.
+						if index(fieldName, '[', 1) gt 0 then exit 
+					repeat
+				end
+
+			case fieldName[1,8] eq "Universe"
+				fieldNames<3,pos> = fieldName
+
+			case 1
+				fieldNames<4,pos,-1> = trim(fieldName)
+				if field(dataDictionary<r+1>, char(9), 2) ne table then fieldNames := @AM
+		end case
+
+
+		lastTable = table
+	next r
+
+tableCount = dcount(fieldNames<1>, @VM)
+for t = 1 to tableCount
+	table 	= fieldNames<1,t> 
+	item 	= fieldNames<2,t> ;* table title
+	item<2> = fieldNames<3,t> ;* universe
+	item<3> = fieldNames<4,t> ;* cell name
+	write item on table.names, 	table
+next t
+
+
+end
