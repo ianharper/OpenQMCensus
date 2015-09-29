@@ -1,0 +1,68 @@
+* PROGRAM list-csv.qm
+* This program is designed to work like list but to return CSV values.
+* The output will consist of the item ID and each field seperated by commas:
+* 		ID,field1,field2,field3
+* It will use the active select list or it will list the entire file. If no
+* fields are supplied then the entire contnts of the record will be displayed.
+
+equate tab to char(9) ;* ASCII tab
+equate quo to '"'
+
+thisProg = 'list-csv.qm'; thisProgL = len(thisProg)
+tclread sentance
+thisProg.index = index(sentance, thisProg, 1) + thisProgL + 2
+words = sentance[thisProg.index, len(sentance) - thisProg.index + 1]
+words = swap(words,' ',@AM)
+
+open words<1> to fileData else stop "Unable to open ":words<1>
+open'DICT', words<1> to fileDict else stop "Unable to open dict ":words<1>
+
+wordCount = dcount(words, @AM)
+* Convert the selection field number or name to attribute numbers.
+for w = 2 to wordCount
+	if words<w> matches "'f'1-3N" then 
+		words<w> = oconv(words<w>, "MCN")
+	end else
+		readv attr from fileDict, words<w>, 2 else stop "Unable to read attribute ":words<w>
+		words<w> = attr
+	end
+next w
+
+* Read through the file and display selected attributes. counter currently only used to make sure 
+* there's output (if nothing selected then select the entire file.)
+counter = 0
+loop
+	readnext id else 
+		if counter eq 0 then select fileData to 0; continue
+		exit
+	end
+	read record from fileData, id else exit
+
+	display quo : id : quo : tab :
+
+	if wordCount gt 1 then
+		for w = 2 to wordCount
+			display quo : record< words<w> > : quo :
+			if w ne wordCount then display tab :
+		next w
+	end else
+		display quo : swap(record, @AM,  quo : tab : quo):
+	end
+	display
+	counter += 1
+repeat
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end

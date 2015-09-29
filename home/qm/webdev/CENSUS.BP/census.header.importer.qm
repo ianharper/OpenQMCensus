@@ -5,7 +5,7 @@ Print "Enter state:":
 input state
 
 item.name = state:'geo2010.sf2'
-*census.name = 'census.':state
+* census.name = 'census.':state
 census.name = state:'2010.sf2'
 
 print
@@ -121,7 +121,7 @@ FOR r = 1 TO record.count
 	output.record<100> = trim(records<r>[478,5])
 	output.record<101> = trim(records<r>[483,18])
 
-	output.id = records<r>[7,19]
+	output.id = records<r>[1,25]
 	write output.record on census.header, output.id
 	print @(0,38):fmt(r,"R#4"):@(75*(r/record.count)+5,38):'>':
 NEXT r

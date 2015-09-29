@@ -15,7 +15,7 @@
 *	locations=[locations ',' deliminated]		locations=whatcom,skagit	
 *	topic=[table name]							topic=pct1 (overall population table)
 * 
-* 	run census.bp census.query.qm level=County locations="Whatcom&County" topic=pct1
+* 	run census.bp census.query.qm level=County locations="Whatcom_County" topic=pct1
 
 	tclread arguments
 	if index(arguments, '&',1) then
@@ -27,6 +27,7 @@
 	words 	  = dcount(arguments,' ') ;* TCL arguments are ' ' delimited
 	arguments = swap(arguments, ' ', @AM)	
 	arguments = swap(arguments, '_',   ' ')
+* 	arguments = downcase(arguments)
 
 * 	if dcount(arguments, @AM) ne 4 then display arguments; stop ;* impropper request
 
@@ -42,19 +43,19 @@
 			case index(arguments<w>, 'locations=', 1) gt 0
 				locations 	= field(arguments<w>,'=',2)
 				locations	= swap(locations, '+', ' ')
+				locations 	= swap(locations, '%2C', \" "\)
 				locations 	= swap(locations, ',', \" "\) ;* prepped for header select statment
 				if locations[1,1] ne \"\ then locations = \"\:locations:\"\
 
 			case index(arguments<w>, 'topic=', 1) gt 0
-				topic 		= field(arguments<w>,'=',2)
+				topic 		= downcase( field( arguments<w>,'=',2 ) )
 * 				if topic[1,1] ne \"\ then topic = \"\:topic:\"\
 
 		end case
 	next w
 	header.statement = \select census.header with \:level:\ and with name = \:locations:\ saving \:topic
-
 	list.statement   = \LISTA.QM \:topic
-
+* crt header.statement
 	execute header.statement capturing x
 	execute list.statement 
 end
